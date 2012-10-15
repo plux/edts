@@ -30,6 +30,7 @@
 %% API
 -export([ compile_and_load/2
         , get_function_info/4
+        , get_module_eunit_result/2
         , get_module_info/3
         , get_module_xref_analysis/3
         , init_node/3
@@ -131,6 +132,24 @@ get_module_info(Node, Module, Level) ->
       edts_log:error(Fmt, [Node, E]),
       {error, not_found};
     Info  -> Info
+  end.
+
+%%------------------------------------------------------------------------------
+%% @doc
+%% Returns the result of eunit tests in Module on Node
+%% @end
+%%
+-spec get_module_eunit_result(Node::node(), Module::module()) ->
+                                 {ok, [{error,
+                                        File::file:filename(),
+                                        non_neg_integer(),
+                                        Desc::string()}]}.
+%%------------------------------------------------------------------------------
+get_module_eunit_result(Node, Module) ->
+  edts_log:debug("get_module_eunit_result ~p, ~p", [Module, Node]),
+  case edts_dist:call(Node, edts_eunit, test, [Module]) of
+    {badrpc, _} -> {error, not_found};
+    Result      -> Result
   end.
 
 %%------------------------------------------------------------------------------
